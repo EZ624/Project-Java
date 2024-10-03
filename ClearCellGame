@@ -1,0 +1,295 @@
+package model;
+
+import java.util.Random;
+
+/**
+ * This class extends GameModel and implements the logic of the clear cell game.
+ * We define an empty cell as BoardCell.EMPTY. An empty row is defined as one
+ * where every cell corresponds to BoardCell.EMPTY.
+ * 
+ * @author Department of Computer Science, UMCP
+ */
+
+public class ClearCellGame extends Game {
+
+	/**
+	 * Defines a board with empty cells. It relies on the super class constructor to
+	 * define the board. The random parameter is used for the generation of random
+	 * cells. The strategy parameter defines which clearing cell strategy to use
+	 * (for this project it will be 1). For fun, you can add your own strategy by
+	 * using a value different that one.
+	 * 
+	 * @param maxRows
+	 * @param maxCols
+	 * @param random
+	 * @param strategy
+	 */
+	private Random rand;
+	private int score;
+	protected int rows;
+	private int maxRows;
+	private int maxCols;
+	private int strategy;
+
+	public ClearCellGame(int maxRows, int maxCols, Random random, int strategy) {
+		super(maxRows, maxCols);
+		if (random == null) {
+			throw new IllegalArgumentException("Invalid Random parameter.");
+		} else {
+			rand = random;
+			this.maxRows = maxRows;
+			this.maxCols = maxCols;
+			this.strategy = strategy;
+		}
+	}
+
+	public boolean isGameOver() {
+		int maxRows = this.getMaxRows();
+		int num = 0;
+
+		for (int col = 0; col < this.getMaxCols(); col++) {
+			if (this.getBoardCell(maxRows - 1, col) != BoardCell.EMPTY) {
+				num++;
+			}
+		}
+		if (num <= this.getMaxCols() && num > 0) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
+	public int getScore() {
+		return score;
+	}
+
+	public void nextAnimationStep() {
+
+		if (!isGameOver()) {
+			if (checkEndEmptyRow(getBoard(this)) > 0) {
+				rows = maxRows - checkEndEmptyRow(getBoard(this));
+			}
+			if (rows >= 1) {
+				for (int r = rows; r >= 0; r--) {
+					for (int col = 0; col < maxCols; col++) {
+						if (r > 0) {
+							this.setBoardCell(r, col, this.getBoardCell(r - 1, col));
+						} else if (r == 0) {
+							BoardCell b = BoardCell.getNonEmptyRandomBoardCell(rand);
+							this.setBoardCell(r, col, b);
+						}
+					}
+				}
+				rows++;
+			} else if (rows == 0) {
+				for (int col = 0; col < maxCols; col++) {
+					BoardCell b = BoardCell.getNonEmptyRandomBoardCell(rand);
+					this.setBoardCell(rows, col, b);
+				}
+				rows++;
+			}
+		}
+	}
+
+	public void processCell(int rowIndex, int colIndex) {
+		if (strategy == 1 && !(isGameOver())) {
+			BoardCell cell = this.getBoardCell(rowIndex, colIndex);
+			int r = rowIndex;
+			int c = colIndex;
+			// horizontal left
+			for (int col = c - 1; col >= 0; col--) {
+				if (this.getBoardCell(r, col) == cell) {
+					this.setBoardCell(r, col, BoardCell.EMPTY);
+					score++;
+				} else if (this.getBoardCell(r, col) != cell) {
+					break;
+				}
+			}
+			// horizontal right
+			for (int col = c + 1; col < maxCols; col++) {
+				if (this.getBoardCell(r, col) == cell) {
+					this.setBoardCell(r, col, BoardCell.EMPTY);
+					score++;
+				} else if (this.getBoardCell(r, col) != cell) {
+					break;
+				}
+			}
+
+			// vertical up
+			for (int row = r - 1; row >= 0; row--) {
+				if (this.getBoardCell(row, c) == cell) {
+					this.setBoardCell(row, c, BoardCell.EMPTY);
+					score++;
+				} else if (this.getBoardCell(row, c) != cell) {
+					break;
+				}
+			}
+			// vertical down
+			for (int row = r + 1; row < maxRows; row++) {
+				if (this.getBoardCell(row, c) == cell) {
+					this.setBoardCell(row, c, BoardCell.EMPTY);
+					score++;
+				} else if (this.getBoardCell(row, c) != cell) {
+					break;
+				}
+			}
+
+			// diagonal down left
+			for (int row = r + 1, col = c - 1; row < maxRows && col >= 0; row++, col--) {
+				if (this.getBoardCell(row, col) == cell) {
+					this.setBoardCell(row, col, BoardCell.EMPTY);
+					score++;
+				} else if (this.getBoardCell(row, col) != cell) {
+					break;
+				}
+			}
+
+			// diagonal up right
+			for (int row = r - 1, col = c + 1; row >= 0 && col < maxCols; row--, col++) {
+				if (this.getBoardCell(row, col) == cell) {
+					this.setBoardCell(row, col, BoardCell.EMPTY);
+					score++;
+				} else if (this.getBoardCell(row, col) != cell) {
+					break;
+				}
+			}
+
+			// diagonally up left
+			for (int row = r - 1, col = c - 1; row >= 0 && col >= 0; row--, col--) {
+				if (this.getBoardCell(row, col) == cell) {
+					this.setBoardCell(row, col, BoardCell.EMPTY);
+					score++;
+				} else if (this.getBoardCell(row, col) != cell) {
+					break;
+				}
+			}
+
+			// diagonally down right
+			for (int row = r + 1, col = c + 1; row < maxRows && col < maxCols; row++, col++) {
+				if (this.getBoardCell(row, col) == cell) {
+					this.setBoardCell(row, col, BoardCell.EMPTY);
+					score++;
+				} else if (this.getBoardCell(row, col) != cell) {
+					break;
+				}
+			}
+			this.setBoardCell(rowIndex, colIndex, BoardCell.EMPTY);
+			score++;
+		
+			int emptyRow = checkEmptyRow(getBoard(this));
+			if (emptyRow >= 0) {
+				for (int row = 0; row < maxRows; row++) {
+					for (int col = 0; col < maxCols; col++) {
+						if (row >= emptyRow && row < maxRows - 1) {
+							this.setBoardCell(row, col, this.getBoardCell(row + 1, col));
+						} else if (row == maxRows - 1) {
+							this.setBoardCell(row, col, BoardCell.EMPTY);
+						}
+					}
+
+				}
+				rows--;
+			} else if (checkEndEmptyRow(getBoard(this)) > 0) {
+				rows = rows - checkEndEmptyRow(getBoard(this));
+			}
+		}
+
+	}
+
+	private int checkEndEmptyRow(BoardCell[][] b) {
+		int numcols = 0;
+		int endEmpty = 0;
+		for (int row = maxRows - 1; row >= 0; row--) {
+			for (int col = 0; col < maxCols; col++) {
+				if (this.getBoardCell(row, col) == BoardCell.EMPTY) {
+					numcols++;
+				}
+
+			}
+			if (numcols == maxCols) {
+				endEmpty++;
+			} else if (numcols < maxCols) {
+				break;
+			}
+			numcols = 0;
+		}
+		return endEmpty;
+	}
+
+	private int checkEmptyRow(BoardCell[][] b) {
+		int num = 0;
+		int r = 0;
+		int numcols = 0;
+		int endEmpty = 0;
+		for (int row = maxRows - 1; row >= 0; row--) {
+			for (int col = 0; col < maxCols; col++) {
+				if (this.getBoardCell(row, col) == BoardCell.EMPTY) {
+					numcols++;
+				}
+
+			}
+			if (numcols == maxCols) {
+				endEmpty++;
+			} else if (numcols < maxCols) {
+				break;
+			}
+			numcols = 0;
+		}
+		for (int row = 0; row < b.length; row++) {
+			for (int col = 0; col < b[row].length; col++) {
+				if (b[row][col] == BoardCell.EMPTY) {
+					num++;
+					r = row;
+				}
+			}
+			if (num == b[row].length && row < b.length - endEmpty) {
+				return r;
+			}
+			num = 0;
+		}
+		return -1;
+	}
+
+	private int checkNumEmptyRows() {
+		int numcols = 0;
+		int idx = 0;
+		int endEmpty = 0;
+		for (int row = maxRows - 1; row >= 0; row--) {
+			for (int col = 0; col < maxCols; col++) {
+				if (this.getBoardCell(row, col) == BoardCell.EMPTY) {
+					numcols++;
+				}
+
+			}
+			if (numcols == maxCols) {
+				endEmpty++;
+			} else if (numcols < maxCols) {
+				break;
+			}
+		}
+
+		for (int row = 0; row < (maxRows - endEmpty); row++) {
+			for (int col = 0; col < maxCols; col++) {
+				if (this.getBoardCell(row, col) == BoardCell.EMPTY) {
+					numcols++;
+				}
+			}
+			if (numcols == maxCols) {
+				idx++;
+			}
+			numcols = 0;
+		}
+		return idx;
+	}
+
+	private BoardCell[][] getBoard(ClearCellGame c) {
+		BoardCell[][] b = new BoardCell[c.getMaxRows()][c.getMaxCols()];
+		for (int row = 0; row < b.length; row++) {
+			for (int col = 0; col < b[row].length; col++) {
+				b[row][col] = c.getBoardCell(row, col);
+			}
+		}
+		return b;
+	}
+
