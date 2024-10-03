@@ -1,2 +1,2 @@
-# ClearCellGame-Project
+# Java-Project: Cell Clearing Game
 Game goal is to maximize the cleared cells on the colored board. By clearing the cells you must click on the individual cell and try to clear the cell as fast as possible before the uncleared stack reaches the bottom of the board. By clicking on a color for example, yellow, will remove all yellow cells that are connected to the single cell that you selected. If the uncleared stack have not reached the bottom, new row of cells will be generated with random colors and the previous rows will move down one row, moving the lowest colored row closer to the end of the board. Uses GUI (graphical user interface) to display the game. 
